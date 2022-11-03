@@ -6,6 +6,7 @@ Promise.all([d3.csv('./data/senate_forecasts.csv'), preGrouped]).then( data =>
         let forecastData = data[0];
         let pollData = data[1];
 
+
         /////////////////
         // EXTRA CREDIT//
         /////////////////

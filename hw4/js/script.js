@@ -21,7 +21,9 @@ const globalApplicationState = {
 
 //******* APPLICATION MOUNTING *******
 loadData().then((loadedData) => {
-  console.log('Here is the imported data:', loadedData.covidData);
+  console.log('Here is the imported covid data:', loadedData.covidData);
+  console.log('Here is the imported map data:', loadedData.mapData);
+
 
   // Store the loaded data into the globalApplicationState
   globalApplicationState.covidData = loadedData.covidData;
@@ -35,4 +37,9 @@ loadData().then((loadedData) => {
   globalApplicationState.lineChart = lineChart;
 
   //TODO add interactions for Clear Selected Countries button
+  d3.select('#clear-button')
+    .on('click', (d) => {
+      globalApplicationState.selectedLocations = [];
+      globalApplicationState.worldMap.updateSelectedCountries();
+    });
 });
