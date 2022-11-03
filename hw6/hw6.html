@@ -35,6 +35,11 @@
     <div id="content">
         <div id="chart-area">
             <svg id="scale"></svg>
+            <svg id="chart-content">
+                <g id="axis"></g>
+                <g id="chart"></g>
+                <g id="tooltip"></g>
+            </svg>
             
 
         </div>
@@ -54,17 +59,16 @@
         </table> -->
 
         <div class="table-content">
-            <table class="table">
+            <table class="table table-sm table-bordered" id="phraseTable">
                 <thead>
                     <tr>
-                    <th scope="col" class="text-center">Phrase</th>
-                    <th scope="col" class="text-center">Frequency</th>
-                    <th scope="col" class="text-center">Percentages</th>
-                    <th scope="col" class="text-center">Total</th>
+                    <th scope="col" class="text-center align-top">Phrase</th>
+                    <th scope="col" class="text-center viz-header" id="frequency-header">Frequency</th>
+                    <th scope="col" class="text-center viz-header" id="percentage-header">Percentages</th>
+                    <th scope="col" class="text-center align-top">Total</th>
                     </tr>
                 </thead>
-                <tbody>
-                    
+                <tbody id="phraseTableBody">
                 </tbody>
             </table>
         </div>

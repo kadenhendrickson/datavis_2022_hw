@@ -7,30 +7,16 @@ class BeeswarmChart {
 
         this.CHART_WIDTH = 900;
         this.CHART_HEIGHT = 150;
-        this.MARGIN = { left: 20, bottom: 15, top: 15, right: 20 };
+        this.MARGIN = { left: 20, bottom: 15, top: 75, right: 20 };
        
         // Grouped Data
-        let groupedData = d3.group(globalApplicationState.phraseData, d => d.category);
-        let phraseData = globalApplicationState.phraseData;
-        // console.log('groupedData', groupedData);
-       
-        // console.log(d3.extent(phraseData.map(d => parseFloat(d.percent_of_r_speeches) - parseFloat(d.percent_of_d_speeches))));
+        this.groupedData = d3.group(globalApplicationState.phraseData, d => d.category);
+        console.log('grouped!', this.groupedData);
+        let phraseData = globalApplicationState.phraseData;       
         
-        // X Scale
-        this.scaleX = d3.scaleLinear()
-            .domain(d3.extent(phraseData.map(d => d.sourceX)))
-            .range([this.MARGIN.left, this.CHART_WIDTH-this.MARGIN.right])
-            .nice();
-        
-        // Y Scale
-        this.scaleY = d3.scaleLinear()
-            .domain(d3.extent(phraseData.map(d => d.sourceY)))
-            .range([this.MARGIN.bottom, this.CHART_HEIGHT - this.MARGIN.top])
-            .nice();
-
         // Axis Scale
         this.scaleLeaning = d3.scaleLinear()
-            .domain(d3.extent(phraseData.map(d => this.scaleX(parseFloat(d.percent_of_r_speeches)) - this.scaleX(parseFloat(d.percent_of_d_speeches)))))
+            .domain(d3.extent(phraseData.map(d => parseFloat(d.percent_of_r_speeches) - parseFloat(d.percent_of_d_speeches))))
             .range([this.MARGIN.left, this.CHART_WIDTH - this.MARGIN.right]);
 
         this.radialScale = d3.scaleRadial()
@@ -38,7 +24,7 @@ class BeeswarmChart {
             .range([2.25, 10.5]);
 
         this.colorScale = d3.scaleOrdinal()
-            .domain(groupedData.keys())
+            .domain(this.groupedData.keys())
             .range([
                 '#45B39D',
                 '#AF7AC5',
@@ -55,106 +41,151 @@ class BeeswarmChart {
     // DRAW SCALE
     drawScale() {
         let xAxis = d3.axisBottom();
-        xAxis.scale(this.scaleLeaning);
+        xAxis.scale(this.scaleLeaning)
+            .ticks(10);
+
         d3.select('#scale')
             .call(xAxis);
-    }
 
+        d3.select('#axis')
+            .append('line')
+
+    }
 
     // DRAW THE CHART USING CLASS PHRASE DATA
     drawChart() {
-        let activeData = this.globalApplicationState.activeData;
-        
-        console.log('active data', activeData);
-        let chartGroups = d3.select('#chart-area')
-            .selectAll('.chart')
-            .data(activeData);
-
-        chartGroups.exit().remove();
-
-        let groups = chartGroups.enter()
-            .append('g')
-            .attr('class', 'chart');
-
-        this.addCategories();
-
-            groups.append('svg')
-            .attr('width', this.CHART_WIDTH)
-            .attr('height', this.CHART_HEIGHT);
-
+        this.drawAxis();
         this.addCircles();
+        this.addCategories();
     }
 
-    addSvg() {
-        if(this.globalApplicationState.grouped) {
-            d3.selectAll('.chart')
-                .append('svg')
-                .attr('width', this.CHART_WIDTH)
-                .attr('height', this.CHART_HEIGHT)
-                .attr('id' ,'chart-svg');
+    drawAxis() {
 
-        } else {
-            d3.selectAll('.chart')
-                .selectAll('svg')
-                .remove();
-        }
-        // d3.selectAll('.chart')
-        //     .filter((d,i) => i !== 0)
-        //     .append('svg')
-        //     .attr('width', this.CHART_WIDTH)
-        //     .attr('height', this.CHART_HEIGHT);
+        let maxY = this.globalApplicationState.grouped
+            ? d3.max(this.globalApplicationState.phraseData.map(d => d.moveY))
+            : d3.max(this.globalApplicationState.phraseData.map(d => d.sourceY));
+
+        // let center = ((this.CHART_WIDTH - this.MARGIN.right) - this.MARGIN.left) / 2;
+        // let center = this.scaleLeaning(this.scaleLeaning.domain()[1] - (this.scaleLeaning.domain()[1] - this.scaleLeaning.domain()[0])/2);
+        let center = this.scaleLeaning(0);
+        console.log('max domain', this.scaleLeaning.domain()[1]);
+        console.log('min domain', this.scaleLeaning.domain()[0]);
+
+        console.log('alleged center:',this.scaleLeaning.domain()[1] - (this.scaleLeaning.domain()[1] - this.scaleLeaning.domain()[0])/2);
+        d3.select('#axis').select('line')
+            .join('line')
+            .transition().duration(1000)
+            .attr('x1', center)
+            .attr('y1', 0)
+            .attr('x2', center)
+            .attr('y2', this.MARGIN.top + maxY + this.MARGIN.bottom)
+            .style('stroke', 'black');
 
     }
-
 
     addCircles() {
-        let chartGroups = d3.selectAll('.chart');
-        chartGroups.select('svg')
+        d3.select('#chart')
             .selectAll('circle')
-            .data(d => {
-                if(d.length > 2) {
-                    return d;
-                } else {
-                    return d[1];
-                }
-                })
+            .data(this.globalApplicationState.phraseData)
             .join('circle')
             .attr('r', d => this.radialScale(d.total))
             .attr('fill', d => this.colorScale(d.category))
             .attr('stroke', 'black')
             .attr('stroke-width', '0.5')
+            .on('mouseover', function(event, d) {
+                let relX = globalApplicationState.grouped 
+                    ? d.moveX - d3.select('#chart').node().getBoundingClientRect().x
+                    : d.sourceX - d3.select('#chart').node().getBoundingClientRect().x;
+                // Adjust for position on screen
+                relX = relX < 600 ? relX + 150 : relX - 100;
+                
+                let relY = globalApplicationState.grouped ? d.moveY + 75 : d.correctedY + 75;
+
+                // Outline bubble
+                d3.select(this)
+                    .attr('stroke-width', '1.5');
+
+                // Display Tooltip
+                let tooltip = d3.select('#tooltip');
+
+                let tooltipEnter = tooltip.selectAll('text')
+                    .data([d])
+                    .enter();
+                    
+                tooltipEnter.append('rect')
+                    .attr('rx', 5)
+                    .attr('ry', 5)
+                    .attr('x',relX - 20)
+                    .attr('y', relY - 25)
+                    .attr('width', 200)
+                    .attr('height', 75)
+                    .attr('fill', 'white')
+                    .attr('opacity', 0.9)
+                    .attr('border-radius', '10px');
+                
+                tooltipEnter.append('text')
+                    .text(d.phrase.charAt(0).toUpperCase() + d.phrase.slice(1))
+                    .attr('y', relY)
+                    .attr('x', relX)
+                    .attr('font-size', 20);
+                
+                tooltipEnter.append('text')
+                    .text(d => {
+                        let party = d.position > 0 ? 'R+ ' : 'D+ '
+                        return party + d3.format("~r")(Math.abs((d.position)))+'%'
+                    })
+                    .attr('y', relY + 20)
+                    .attr('x', relX)
+                    .attr('font-size', 15);
+                tooltipEnter.append('text')
+                    .text(d => {
+                        return 'In ' + d3.format(".0%")(d.total/50) + ' of speeches';
+                    })
+                    .attr('y', relY + 40)
+                    .attr('x', relX)
+                    .attr('font-size', 15);
+            })
+            .on('mouseout', function(event, d){
+                d3.select(this)
+                    .attr('stroke-width', '0.5');
+
+                d3.select('#tooltip')
+                    .selectAll('text')
+                    .remove();
+                
+                d3.select('#tooltip')
+                    .selectAll('rect')
+                    .remove();
+            })
             .transition().duration(1000)
-            .attr('cx', d => this.scaleX(d.sourceX))
-            .attr('cy', d => this.scaleY(d.sourceY));
+            .attr('cx', d => {
+                return this.globalApplicationState.grouped ? d.moveX : d.sourceX;
+            })
+            .attr('cy', d => {
+                return this.globalApplicationState.grouped ?  d.moveY + this.MARGIN.top : d.sourceY + this.MARGIN.top;
+            });
+        
     }
 
     addCategories() {
-        if(this.globalApplicationState.grouped) {
-            let chartGroups = d3.selectAll('.chart');
-            chartGroups.selectAll('text')
-                .data(d => [d])
-                .join('text')
-                .transition().duration(1000)
-                .attr('x', this.scaleX(0))
-                .attr('y', this.scaleY(0))
-                .text(d => {
-                    return d[0].charAt(0).toUpperCase() + d[0].slice(1);
-                });
-        } else {
-            d3.selectAll('.chart')
-                .selectAll('text')
-                .remove()
-        }
+        d3.select('#chart')
+            .selectAll('text')
+            .data(this.groupedData.keys())
+            .join('text')
+            .text(d => {
+                return d.charAt(0).toUpperCase() + d.slice(1);
+            })
+            .attr('fill', 'darkgrey')
+            .attr('font-size', 18)
+            .transition().duration(1000)
+            .attr('x', '0')
+            .attr('y', (d,i) => {
+                return this.globalApplicationState.grouped ? i * 128 + this.MARGIN.top - 30 : -30;
+            });
     }
 
     updateTable() {
-
-        // d3.selectAll('.chart')
-        //     .remove();
-
         this.drawChart();
-
-
     }
 
 

@@ -33,7 +33,6 @@ async function loadData () {
 // communicate across the visualizations
 const globalApplicationState = {
     grouped: false,
-    activeData: null,
     phraseData: null,
     beeswarmChart: null,
     table: null,
@@ -52,7 +51,7 @@ loadData().then((loadedData) => {
   
     // Creates the view objects with the global state passed in 
     const beeswarmChart = new BeeswarmChart(globalApplicationState);
-    // const table = new Table(globalApplicationState);
+    const table = new Table(globalApplicationState);
   
     globalApplicationState.beeswarmChart = beeswarmChart;
     // globalApplicationState.table = table;
@@ -63,17 +62,10 @@ loadData().then((loadedData) => {
         console.log(d.target.checked);
         if(d.target.checked) {
             globalApplicationState.grouped = true;
-            globalApplicationState.activeData = d3.group(globalApplicationState.phraseData, d => d.category);
-            console.log('GLOBALAPPSTATE', globalApplicationState);
             globalApplicationState.beeswarmChart.updateTable();
-            
         } else {
             globalApplicationState.grouped = false;
-            globalApplicationState.activeData = [loadedData]
-            console.log('GLOBALAPPSTATE', globalApplicationState);
             globalApplicationState.beeswarmChart.updateTable();
-
-
         }
 
       });

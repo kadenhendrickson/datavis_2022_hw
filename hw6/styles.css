@@ -1,12 +1,19 @@
 #content {
-    margin: auto;
-    width: 1550px;
+    width: 1700px;
     display: flex;
     justify-content: space-between;
+    align-items: top;
 }
 
 #chart-area {
     width: 900px;
+    margin: 0 200px 0 100px;
+}
+
+#chart-content {
+    width: 900px;
+    height: 1500px;
+    padding-top: 10px;
 }
 
 #scale {
@@ -30,5 +37,20 @@
 /* TABLE STYLING */
 
 .table-content {
-    width: 600px;
+    width: 800px;
+    /* margin: auto; */
 }
+
+td:first-of-type {
+    text-align: left;
+}
+
+td {
+    text-align: center;
+    /* vertical-align: center; */
+    color:black;
+    /* line-height: 0; */
+    font-size: 12px;
+}
+
+
