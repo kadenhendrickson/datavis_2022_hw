@@ -18,27 +18,23 @@
 
 #scale {
     width: 900px;
-    height: 20px;
+    height: 50px;
 }
 
-#grouped-checkbox{
+#grouped-checkbox, #highlight-button{
     margin-left: 30px;
+    display: inline-block;
 }
 
-/* #chart-content {
-    width: 900px;
+#interaction {
+    margin-bottom: 40px;
+    margin-top: 20px;
 }
-
-.chart {
-    width: 900px;
-    height: 250px;
-} */
 
 /* TABLE STYLING */
 
 .table-content {
     width: 800px;
-    /* margin: auto; */
 }
 
 td:first-of-type {
@@ -47,9 +43,7 @@ td:first-of-type {
 
 td {
     text-align: center;
-    /* vertical-align: center; */
     color:black;
-    /* line-height: 0; */
     font-size: 12px;
 }
 

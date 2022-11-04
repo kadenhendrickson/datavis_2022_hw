@@ -3,21 +3,39 @@ class BeeswarmChart {
 
     constructor(globalApplicationState) {
         this.globalApplicationState = globalApplicationState;
-        console.log('Beeswarm Constructor: Application State', this.globalApplicationState);
 
         this.CHART_WIDTH = 900;
         this.CHART_HEIGHT = 150;
-        this.MARGIN = { left: 20, bottom: 15, top: 75, right: 20 };
+        this.MARGIN = { left: 20, bottom: 15, top: 20, right: 20 };
        
         // Grouped Data
         this.groupedData = d3.group(globalApplicationState.phraseData, d => d.category);
-        console.log('grouped!', this.groupedData);
         let phraseData = globalApplicationState.phraseData;       
         
         // Axis Scale
         this.scaleLeaning = d3.scaleLinear()
             .domain(d3.extent(phraseData.map(d => parseFloat(d.percent_of_r_speeches) - parseFloat(d.percent_of_d_speeches))))
             .range([this.MARGIN.left, this.CHART_WIDTH - this.MARGIN.right]);
+
+        this.xDomain = this.globalApplicationState.grouped
+            ? d3.extent(phraseData.map(d => d.moveX))
+            : d3.extent(phraseData.map(d => d.sourceX));
+        
+        this.xScale = d3.scaleLinear()
+            .domain(this.xDomain)
+            .range([this.MARGIN.left, this.CHART_WIDTH - this.MARGIN.right]);
+
+        this.yDomain = this.globalApplicationState.grouped
+            ? d3.extent(phraseData.map(d => d.moveY))
+            : d3.extent(phraseData.map(d => d.sourceY));
+
+        this.yRange = this.globalApplicationState.grouped
+            ? [this.MARGIN.top, this.CHART_HEIGHT*6]
+            : [this.MARGIN.top, this.CHART_HEIGHT];
+        
+        this.yScale = d3.scaleLinear()
+            .domain(this.yDomain)
+            .range(this.yRange);
 
         this.radialScale = d3.scaleRadial()
             .domain(d3.extent(phraseData.map(d => parseInt(d.total))))
@@ -43,62 +61,82 @@ class BeeswarmChart {
         let xAxis = d3.axisBottom();
         xAxis.scale(this.scaleLeaning)
             .ticks(10);
+        
+        let scaleText = d3.select('#scale').append('g');
 
-        d3.select('#scale')
+
+        d3.select('#scale').append('g')
+            .attr('transform', 'translate(0,30)')
             .call(xAxis);
+
+        
+        scaleText.append('text')
+            .text('Republican Leaning')
+            .attr('font-weight', 700)
+            .attr('x', this.CHART_WIDTH - 150)
+            .attr('y', 20);
+
+        scaleText.append('text')
+            .text('Democratic Leaning')
+            .attr('font-weight', 700)
+            .attr('x', 10)
+            .attr('y', 20);
 
         d3.select('#axis')
             .append('line')
-
+            
     }
 
     // DRAW THE CHART USING CLASS PHRASE DATA
     drawChart() {
         this.drawAxis();
+        this.addBrush();
         this.addCircles();
         this.addCategories();
     }
 
     drawAxis() {
-
         let maxY = this.globalApplicationState.grouped
-            ? d3.max(this.globalApplicationState.phraseData.map(d => d.moveY))
-            : d3.max(this.globalApplicationState.phraseData.map(d => d.sourceY));
+            ? d3.max(this.globalApplicationState.phraseData.map(d => this.yScale(d.moveY)))
+            : d3.max(this.globalApplicationState.phraseData.map(d => this.yScale(d.sourceY)));
 
-        // let center = ((this.CHART_WIDTH - this.MARGIN.right) - this.MARGIN.left) / 2;
-        // let center = this.scaleLeaning(this.scaleLeaning.domain()[1] - (this.scaleLeaning.domain()[1] - this.scaleLeaning.domain()[0])/2);
-        let center = this.scaleLeaning(0);
-        console.log('max domain', this.scaleLeaning.domain()[1]);
-        console.log('min domain', this.scaleLeaning.domain()[0]);
 
-        console.log('alleged center:',this.scaleLeaning.domain()[1] - (this.scaleLeaning.domain()[1] - this.scaleLeaning.domain()[0])/2);
         d3.select('#axis').select('line')
             .join('line')
             .transition().duration(1000)
-            .attr('x1', center)
+            .attr('x1', 436.85)
             .attr('y1', 0)
-            .attr('x2', center)
-            .attr('y2', this.MARGIN.top + maxY + this.MARGIN.bottom)
+            .attr('x2', 436.85)
+            .attr('y2', maxY)
             .style('stroke', 'black');
 
     }
 
     addCircles() {
-        d3.select('#chart')
+        this.xDomain = this.globalApplicationState.grouped
+        ? d3.extent(this.globalApplicationState.phraseData.map(d => d.moveX))
+        : d3.extent(this.globalApplicationState.phraseData.map(d => d.sourceX));
+
+        this.yDomain = this.globalApplicationState.grouped
+        ? d3.extent(this.globalApplicationState.phraseData.map(d => d.moveY))
+        : d3.extent(this.globalApplicationState.phraseData.map(d => d.sourceY));
+
+        this.yRange = this.globalApplicationState.grouped
+            ? [this.MARGIN.top, this.CHART_HEIGHT]
+            : [this.MARGIN.top, this.CHART_HEIGHT*6];
+
+        let circles = d3.select('#chart')
             .selectAll('circle')
             .data(this.globalApplicationState.phraseData)
-            .join('circle')
-            .attr('r', d => this.radialScale(d.total))
-            .attr('fill', d => this.colorScale(d.category))
-            .attr('stroke', 'black')
-            .attr('stroke-width', '0.5')
+            .join('circle');
+            
+            circles
             .on('mouseover', function(event, d) {
                 let relX = globalApplicationState.grouped 
                     ? d.moveX - d3.select('#chart').node().getBoundingClientRect().x
                     : d.sourceX - d3.select('#chart').node().getBoundingClientRect().x;
                 // Adjust for position on screen
                 relX = relX < 600 ? relX + 150 : relX - 100;
-                
                 let relY = globalApplicationState.grouped ? d.moveY + 75 : d.correctedY + 75;
 
                 // Outline bubble
@@ -157,14 +195,19 @@ class BeeswarmChart {
                     .selectAll('rect')
                     .remove();
             })
+            .attr('fill', d => this.colorScale(d.category))
+            .attr('r', d => this.radialScale(d.total))
+            .attr('stroke', 'black')
+            .attr('stroke-width', '0.5')
             .transition().duration(1000)
             .attr('cx', d => {
-                return this.globalApplicationState.grouped ? d.moveX : d.sourceX;
+                return this.globalApplicationState.grouped ? this.xScale(d.moveX) : this.xScale(d.sourceX);
             })
             .attr('cy', d => {
-                return this.globalApplicationState.grouped ?  d.moveY + this.MARGIN.top : d.sourceY + this.MARGIN.top;
+                return this.globalApplicationState.grouped ?  this.yScale(d.moveY) : this.yScale(d.sourceY);
             });
-        
+
+            this.circles = circles;
     }
 
     addCategories() {
@@ -180,13 +223,52 @@ class BeeswarmChart {
             .transition().duration(1000)
             .attr('x', '0')
             .attr('y', (d,i) => {
-                return this.globalApplicationState.grouped ? i * 128 + this.MARGIN.top - 30 : -30;
+                return this.globalApplicationState.grouped ? i * 165 + this.MARGIN.top  : -30;
             });
     }
 
-    updateTable() {
+    updateChart() {
+        d3.select('#brush-layer')
+            .call(this.brush.move, null);
         this.drawChart();
     }
 
+    addBrush() {
+        let extent = this.globalApplicationState.grouped 
+            ? [[0, 0],[this.CHART_WIDTH, this.CHART_HEIGHT*6 + this.MARGIN.bottom]]
+            : [[0, 0],[this.CHART_WIDTH, this.CHART_HEIGHT + this.MARGIN.bottom]]
+        this.brush = d3.brush()
+            .extent(extent)
+            .on('start brush end', ({selection}) => {
+                let value = [];
 
+                // reset dots
+                if(selection) {                    
+                    this.circles
+                        .attr("stroke", "grey")
+                        .attr("fill", "grey")
+                    const [[x0, y0], [x1, y1]] = selection;
+                    
+                    value = this.circles.filter(d => {
+                            let x = this.globalApplicationState.grouped ? this.xScale(d.moveX) : this.xScale(d.sourceX);
+                            let y = this.globalApplicationState.grouped ? this.yScale(d.moveY) : this.yScale(d.sourceY);
+                            return x0 <= x && x < x1 && y0 <= y && y < y1;
+                    })
+                            .attr("fill", d => this.colorScale(d.category))
+                            .data();
+
+                    this.globalApplicationState.tableData = value;
+                    this.globalApplicationState.table.updateTable();
+                } else {
+                    this.circles
+                        .attr('fill', d => this.colorScale(d.category))
+                        .attr('stroke', 'black')
+                        .attr('stroke-width', '0.5')
+                    this.globalApplicationState.tableData = this.globalApplicationState.phraseData;
+                    this.globalApplicationState.table.updateTable();
+                }
+                    } )
+            d3.select('#brush-layer')
+                .call(this.brush)
+    }
 }

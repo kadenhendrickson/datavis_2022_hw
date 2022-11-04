@@ -27,52 +27,44 @@
             <div>Name: Kaden Hendrickson; E-Mail: u1200510@utah.edu; UID: u1200510</div>
         </header>
     </div>
-   
-    <div id="grouped-checkbox">
-        <input class="form-check-input" type="checkbox">
-        <label class="form-check-label">Grouped by topic</label>
-    </div>
-    <div id="content">
-        <div id="chart-area">
-            <svg id="scale"></svg>
-            <svg id="chart-content">
-                <g id="axis"></g>
-                <g id="chart"></g>
-                <g id="tooltip"></g>
-            </svg>
-            
-
+    <div id="interaction">
+        <div id="grouped-checkbox">
+            <input class="form-check-input" type="checkbox">
+            <label class="form-check-label">Grouped by topic</label>
         </div>
-        
-        <!-- <table id="phraseTable">
-            <thead>
-            <tr id="columnHeaders">
-                <th class="sortable">Phrase</th>
-                <th class="sortable">Frequency</th>
-                <th class="sortable">Percentages</th>
-                <th class="sortable">Total </th>
-            </tr>
-            </thead>
-            <tbody id="phraseTableBody">
-
-            </tbody>
-        </table> -->
-
-        <div class="table-content">
-            <table class="table table-sm table-bordered" id="phraseTable">
-                <thead>
-                    <tr>
-                    <th scope="col" class="text-center align-top">Phrase</th>
-                    <th scope="col" class="text-center viz-header" id="frequency-header">Frequency</th>
-                    <th scope="col" class="text-center viz-header" id="percentage-header">Percentages</th>
-                    <th scope="col" class="text-center align-top">Total</th>
-                    </tr>
-                </thead>
-                <tbody id="phraseTableBody">
-                </tbody>
-            </table>
-        </div>
+        <div id="highlight-button">
+            <button type="button" class="btn btn-outline-primary">I don't work oops</button>
+            </div>
     </div>
+        <div id="content">
+            <div id="chart-area">
+                <svg id="scale"></svg>
+                <svg id="chart-content">
+                    <g id="axis"></g>
+                    <g id="chart">
+                        <g id="brush-layer"></g>
+                    </g>
+                    <g id="tooltip"></g>
+                    
+                </svg>
+                
+    
+            </div>
+            <div class="table-content">
+                <table class="table table-sm table-bordered" id="phraseTable">
+                    <thead>
+                        <tr>
+                        <th scope="col" class="text-center align-top">Phrase</th>
+                        <th scope="col" class="text-center viz-header" id="frequency-header">Frequency</th>
+                        <th scope="col" class="text-center viz-header" id="percentage-header">Percentages</th>
+                        <th scope="col" class="text-center align-top">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="phraseTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
 </body>
 
 </html>

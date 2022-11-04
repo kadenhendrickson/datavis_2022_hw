@@ -2,9 +2,8 @@ class Table {
 
     constructor(globalApplicationState) {
         this.globalApplicationState = globalApplicationState;
-        console.log('Table Constructor: Application State', this.globalApplicationState);
 
-        this.phraseData = this.globalApplicationState.phraseData;
+        this.phraseData = this.globalApplicationState.tableData;
         
         this.vizWidth = 150;
         this.vizHeight = 30;
@@ -189,7 +188,7 @@ class Table {
             .on('click', () => {
                 this.headerData.forEach((d,i) => i !== 1 ? d.ascending = false : null);
                 let info = this.headerData[1];
-                this.phraseData = this.globalApplicationState.phraseData;
+                this.phraseData = this.globalApplicationState.tableData;
 
                 if(!info.ascending) {
                     info.ascending = true;
@@ -255,6 +254,8 @@ class Table {
         return data
     }
 
-
-    
+    updateTable() {
+        this.phraseData = this.globalApplicationState.tableData;
+        this.drawTable();
+    }    
 }
