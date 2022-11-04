@@ -19,14 +19,11 @@ const globalApplicationState = {
 
 // ******* APPLICATION MOUNTING *******
 loadData().then((loadedData) => {
-    setupHtml();
 
   
-    // Store the loaded data into the globalApplicationState
     globalApplicationState.phraseData = loadedData;
     globalApplicationState.tableData = loadedData;
   
-    // Creates the view objects with the global state passed in 
     const beeswarmChart = new BeeswarmChart(globalApplicationState);
     const table = new Table(globalApplicationState);
   

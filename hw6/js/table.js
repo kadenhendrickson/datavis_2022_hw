@@ -2,6 +2,7 @@ class Table {
 
     constructor(globalApplicationState) {
         this.globalApplicationState = globalApplicationState;
+        console.log('Table Constructor: Application State', this.globalApplicationState);
 
         this.phraseData = this.globalApplicationState.tableData;
         
@@ -256,6 +257,7 @@ class Table {
 
     updateTable() {
         this.phraseData = this.globalApplicationState.tableData;
+        // this.phraseData.sort((a,b) => a['category'] < b['category'] ? -1 : 1);
         this.drawTable();
     }    
 }
