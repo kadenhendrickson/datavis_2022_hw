@@ -1,7 +1,5 @@
 class BeeswarmChart {
-    
-
-    constructor(globalApplicationState) {
+        constructor(globalApplicationState) {
         this.globalApplicationState = globalApplicationState;
 
         this.CHART_WIDTH = 900;
@@ -64,12 +62,10 @@ class BeeswarmChart {
         
         let scaleText = d3.select('#scale').append('g');
 
-
         d3.select('#scale').append('g')
             .attr('transform', 'translate(0,30)')
             .call(xAxis);
 
-        
         scaleText.append('text')
             .text('Republican Leaning')
             .attr('font-weight', 700)
